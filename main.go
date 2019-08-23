@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/yarhamjohn/excel-compare/flatten"
 )
 
 func main() {
@@ -57,6 +59,7 @@ func main() {
 			os.Exit(1)
 		}
 
+		fmt.Println(flatten.Flatten(*flattenFilePath, *delimiter))
 		fmt.Printf("The file: %s has been flattened using the delimiter: %s", *flattenFilePath, *delimiter)
 	}
 }
