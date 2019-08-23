@@ -1,17 +1,20 @@
 package flatten
 
 import (
+	"encoding/csv"
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 )
 
 // Flatten flattens an excel file using the specified delimiter and returns the flat file
-func Flatten(filePath string, delimiter string) []excelize.File {
+func Flatten(filePath string, delimiter string) {
 	file, err := excelize.OpenFile(filePath)
 	if err != nil {
 		fmt.Println(err)
-		return make([]excelize.File, 0)
+		return
 	}
 
 	for _, name := range file.GetSheetMap() {
@@ -20,18 +23,26 @@ func Flatten(filePath string, delimiter string) []excelize.File {
 		rows, err := file.GetRows(name)
 		if err != nil {
 			fmt.Println(err)
-			return make([]excelize.File, 0)
+			return
 		}
+
+		newFile, err := os.Create(fmt.Sprintf("C:\\Users\\John\\Desktop\\%s.csv", name)) //TODO: doesn't seem to work
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer newFile.Close()
+
+		w := csv.NewWriter(newFile)
+		w.Comma = []rune(delimiter)[0]
 
 		for _, row := range rows {
-			for _, colCell := range row {
-				fmt.Print(colCell, delimiter)
+			if err := w.Write(row); err != nil {
+				log.Fatalln("Error writing record to file: ", err)
 			}
-			fmt.Println()
 		}
+
+		w.Flush()
 	}
 
-	files := make([]excelize.File, 0)
-	files = append(files, *file)
-	return files
+	return
 }
