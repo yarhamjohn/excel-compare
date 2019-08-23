@@ -59,7 +59,10 @@ func main() {
 			os.Exit(1)
 		}
 
-		fmt.Println(flatten.Flatten(*flattenFilePath, *delimiter))
-		fmt.Printf("The file: %s has been flattened using the delimiter: %s", *flattenFilePath, *delimiter)
+		files := flatten.Flatten(*flattenFilePath, *delimiter)
+		for _, f := range files {
+			fmt.Printf("File created: %s\n", f.Path)
+		}
+		fmt.Printf("The file: %s has been flattened using the delimiter: %s\n", *flattenFilePath, *delimiter)
 	}
 }
