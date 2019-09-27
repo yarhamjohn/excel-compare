@@ -3,9 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
-
 	"github.com/yarhamjohn/excel-compare/flatten"
+	"os"
 )
 
 func main() {
@@ -53,16 +52,21 @@ func main() {
 			os.Exit(1)
 		}
 
-		delimiterChoices := map[string]bool{",": true, "^": true, "|": true}
-		if _, validChoice := delimiterChoices[*delimiter]; !validChoice {
+		delimiterChoices := map[rune]bool{',': true, '^': true, '|': true}
+		runeDelimiter := []rune(*delimiter)[0]
+		if _, validChoice := delimiterChoices[runeDelimiter]; !validChoice {
 			flattenCommand.PrintDefaults()
 			os.Exit(1)
 		}
 
-		files := flatten.Flatten(*flattenFilePath, *delimiter)
-		for _, f := range files {
-			fmt.Printf("File created: %s\n", f.Path)
+		files, err := flatten.Flatten(*flattenFilePath, runeDelimiter)
+		if err != nil {
+			fmt.Println(err)
 		}
-		fmt.Printf("The file: %s has been flattened using the delimiter: %s\n", *flattenFilePath, *delimiter)
+
+		for _, f := range files {
+			fmt.Printf("File created: %s\n", f.Name())
+		}
+		fmt.Printf("The file: %s has been flattened using the delimiter: %q\n", *flattenFilePath, runeDelimiter)
 	}
 }

@@ -3,46 +3,47 @@ package flatten
 import (
 	"encoding/csv"
 	"fmt"
-	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 )
 
 // Flatten flattens an excel file using the specified delimiter and returns the flat file
-func Flatten(filePath string, delimiter string) {
+func Flatten(filePath string, delimiter rune) ([]os.File, error) {
 	file, err := excelize.OpenFile(filePath)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return make([]os.File, 0), err
 	}
 
+	files := make([]os.File, 0)
 	for _, name := range file.GetSheetMap() {
-		fmt.Printf("Sheet name: %s\n", name)
-
 		rows, err := file.GetRows(name)
 		if err != nil {
-			fmt.Println(err)
-			return
+			return make([]os.File, 0), err
 		}
 
-		newFile, err := os.Create(fmt.Sprintf("C:\\Users\\John\\Desktop\\%s.csv", name)) //TODO: doesn't seem to work
+		directory := filepath.Dir(filePath)
+		os.Chdir(directory)
+		newFile, err := os.Create(fmt.Sprintf("%s.csv", name)) //TODO: doesn't seem to work
 		if err != nil {
-			log.Fatal(err)
+			return make([]os.File, 0), err
 		}
-		defer newFile.Close()
 
-		w := csv.NewWriter(newFile)
-		w.Comma = []rune(delimiter)[0]
+		writer := csv.NewWriter(newFile)
+		writer.Comma = delimiter
 
 		for _, row := range rows {
-			if err := w.Write(row); err != nil {
-				log.Fatalln("Error writing record to file: ", err)
+			if err := writer.Write(row); err != nil {
+				return make([]os.File, 0), err
 			}
 		}
 
-		w.Flush()
+		writer.Flush()
+		newFile.Close()
+
+		files = append(files, *newFile)
 	}
 
-	return
+	return files, nil
 }
